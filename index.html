@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subset Sum · NP‑Completeness Proof & Algorithmic Paradigms</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0e1117;
+      --surface: #161b27;
+      --surface2: #1e2435;
+      --border: rgba(255,255,255,0.07);
+      --text: #e8edf5;
+      --muted: #7a8fa6;
+      --soft: #4a6380;
+      --accent: #63b3ed;
+      --accent2: #b794f4;
+      --accent3: #f6ad55;
+      --accent4: #68d391;
+      --danger: #fc8181;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .shell { max-width: 1500px; margin: 0 auto; padding: 28px 24px; }
+
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .page-title h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+    .page-title p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .sidebar { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 20px; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+    .panel-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    input[type="text"], select {
+      width: 100%; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+
+    .preset-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .chip { padding: 5px 12px; border-radius: 99px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 12px; cursor: pointer; transition: all 0.14s; }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    button {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      padding: 10px 16px;
+      transition: all 0.14s;
+    }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #0e1117; font-weight: 600; }
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.1); }
+    .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-success { background: rgba(104,211,145,0.15); color: var(--accent4); border: 1px solid rgba(104,211,145,0.25); }
+    .btn-warn { background: rgba(246,173,85,0.12); color: var(--accent3); border: 1px solid rgba(246,173,85,0.22); }
+    .btn-danger { background: rgba(252,129,129,0.1); color: var(--danger); border: 1px solid rgba(252,129,129,0.2); }
+
+    .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+    .ctrl-grid .full { grid-column: 1 / -1; }
+
+    .speed-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stat { background: var(--surface2); border-radius: 12px; padding: 12px 14px; }
+    .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+    .stat-value { font-size: 22px; font-weight: 600; margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .stat-value.accent { color: var(--accent); }
+    .stat-value.green { color: var(--accent4); }
+    .stat-value.amber { color: var(--accent3); }
+
+    .cmp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 12px 0; }
+    .cmp-card { border-radius: 12px; padding: 12px 14px; border: 1px solid var(--border); }
+    .cmp-card.optimal { border-color: rgba(104,211,145,0.4); background: rgba(104,211,145,0.06); }
+    .cmp-card.current { border-color: rgba(246,173,85,0.4); background: rgba(246,173,85,0.06); }
+    .cmp-card.baseline { border-color: rgba(252,129,129,0.3); background: rgba(252,129,129,0.04); }
+    .cmp-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
+    .cmp-val { font-size: 22px; font-weight: 600; }
+
+    .info-band {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .info-cell { background: var(--surface2); padding: 12px 8px; text-align: center; }
+    .info-cell .l { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .info-cell .v { font-weight: 600; margin-top: 6px; font-family: 'DM Mono', monospace; font-size: 14px; }
+
+    .best-subset-box {
+      background: rgba(104,211,145,0.1);
+      border: 1px solid rgba(104,211,145,0.3);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+    }
+    .best-subset-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent4); margin-bottom: 6px; }
+    .best-subset-value { font-family: 'DM Mono', monospace; font-size: 16px; color: var(--accent4); font-weight: 500; word-break: break-all; }
+
+    .dp-grid-table { border-collapse: collapse; font-family: 'DM Mono', monospace; font-size: 11px; margin: 0 auto; }
+    .dp-grid-table th, .dp-grid-table td { border: 1px solid rgba(255,255,255,0.08); padding: 6px 10px; text-align: center; min-width: 52px; }
+    .dp-grid-table th { background: rgba(255,255,255,0.03); color: var(--muted); font-weight: 500; position: sticky; top: 0; }
+    .dp-grid-table td.true { background: rgba(104,211,145,0.35); color: var(--accent4); font-weight: 600; }
+    .dp-grid-table td.false { background: rgba(255,255,255,0.02); color: var(--soft); }
+    .dp-grid-table td.highlight { background: rgba(246,173,85,0.55); box-shadow: inset 0 0 0 1px var(--accent3); font-weight: bold; }
+    .dp-grid-table td.base-highlight { background: rgba(99,179,237,0.3); }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 12px 16px;
+      background: var(--surface2);
+      border-radius: 10px;
+      margin-top: 12px;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+
+    .trace-list {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+    .trace-item {
+      padding: 6px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 11px;
+    }
+    .trace-item.highlight {
+      background: rgba(246,173,85,0.2);
+      border-left: 2px solid var(--accent3);
+    }
+
+    /* Collapsible Box Styles */
+    .collapsible-box {
+      background: var(--surface2);
+      border-radius: 12px;
+      margin-top: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      user-select: none;
+    }
+    .collapsible-header:hover {
+      background: rgba(255,255,255,0.03);
+    }
+    .collapsible-header h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0;
+      color: var(--accent2);
+    }
+    .collapsible-header .chevron {
+      font-size: 16px;
+      color: var(--muted);
+      transition: transform 0.2s ease;
+    }
+    .collapsible-header.open .chevron {
+      transform: rotate(180deg);
+    }
+    .collapsible-content {
+      padding: 0 18px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.2s ease;
+    }
+    .collapsible-content.open {
+      padding: 0 18px 18px 18px;
+      max-height: 800px;
+    }
+    .collapsible-content p, .collapsible-content li {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .collapsible-content ul {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+    .approx-card-inner {
+      border-left: 3px solid var(--accent3);
+      padding-left: 14px;
+    }
+    .proof-box-inner {
+      border-left: 3px solid var(--accent2);
+      padding-left: 14px;
+    }
+
+    .table-wrap { overflow-x: auto; max-height: 400px; }
+    .explain-box { background: var(--surface2); border-radius: 12px; padding: 16px 18px; font-size: 13px; line-height: 1.7; min-height: 85px; margin-bottom: 16px; }
+
+    .pseudo-wrap { background: var(--surface2); border-radius: 12px; padding: 16px; overflow-x: auto; margin-bottom: 16px; }
+    .code-line { display: grid; grid-template-columns: 36px 1fr; padding: 6px 10px; gap: 8px; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); border-radius: 6px; }
+    .code-line.active { background: rgba(99,179,237,0.12); color: var(--text); }
+    .code-line.active .ln { color: var(--accent); }
+    .ln { color: var(--soft); user-select: none; }
+
+    .shortcuts { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+    .kbd { display: inline-block; padding: 3px 8px; border-radius: 6px; background: var(--surface2); border: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text); }
+
+    .history-item { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: background 0.1s; }
+    .history-item:hover { background: rgba(255,255,255,0.04); }
+    .history-item.active { background: rgba(99,179,237,0.12); border-left: 3px solid var(--accent); }
+
+    .progress-strip { margin-bottom: 16px; }
+    .progress-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .progress-bar { height: 5px; border-radius: 99px; background: rgba(255,255,255,0.08); overflow: hidden; }
+    .progress-fill { height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.2s ease; }
+
+    .two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+    @media (max-width: 1100px) { .main-layout { grid-template-columns: 1fr; } .sidebar { position: static; } .cmp-grid { grid-template-columns: 1fr; } .info-band { grid-template-columns: repeat(3, 1fr); } .two-columns { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="page-header">
+    <div class="page-title">
+      <h1>Subset Sum · NP‑Completeness & Algorithmic Paradigms</h1>
+      <p>Fares Al Qedrah · 20220002060 · CLO-3/4/5 Complete Teaching Tool</p>
+    </div>
+    <div><button class="btn-ghost" id="exportBtn">📄 Export Report</button></div>
+  </header>
+
+  <div class="main-layout">
+    <aside class="sidebar">
+      <div class="panel">
+        <div class="panel-title">📊 Input & Algorithm Mode</div>
+        <label for="setInput">Set S (comma‑separated)</label>
+        <input id="setInput" type="text" value="3,34,4,12,5,2" />
+        <label for="targetInput" style="margin-top:14px">Target t</label>
+        <input id="targetInput" type="number" value="9" />
+        <div style="margin-top:14px"><label>⚡ Presets</label>
+          <div class="preset-chips">
+            <span class="chip" data-preset="1,2,3,4,5,6">Small</span>
+            <span class="chip" data-preset="3,34,4,12,5,2">Classic</span>
+            <span class="chip" data-preset="1,3,5,7,9,11">Odd chain</span>
+            <span class="chip" data-preset="10,20,30,40,50">Large values</span>
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <label for="algoMode">🧠 Algorithm Paradigm</label>
+          <select id="algoMode">
+            <option value="dp">✅ Exhaustive DP (Optimal — Pseudo‑polynomial)</option>
+            <option value="greedy">⚠️ Greedy (No approximation ratio)</option>
+            <option value="firstfit">📦 First‑fit (First subset found)</option>
+            <option value="bruteforce">🔴 Brute‑force (2ⁿ — exponential)</option>
+          </select>
+          <button class="btn-ghost" id="counterexampleBtn" style="margin-top:10px; width:100%">🔍 Show Greedy Counterexample</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">🎮 Playback Controls</div>
+        <div class="ctrl-grid">
+          <button class="btn-primary full" id="buildBtn">🔨 Build Steps</button>
+          <button class="btn-ghost" id="stepBtn" disabled>Step →</button>
+          <button class="btn-success" id="playBtn" disabled>▶ Play</button>
+          <button class="btn-warn" id="pauseBtn" disabled>⏸ Pause</button>
+          <button class="btn-danger full" id="resetBtn">🔄 Reset</button>
+        </div>
+        <div style="margin-top:16px">
+          <div class="speed-row"><span>⚡ Speed</span><strong id="speedValue">1.00×</strong></div>
+          <input type="range" id="speedSlider" min="0.25" max="4" step="0.25" value="1" />
+        </div>
+        <div class="shortcuts">
+          <div class="shortcut"><span class="kbd">Space</span> Play/Pause</div>
+          <div class="shortcut"><span class="kbd">→</span> Step</div>
+          <div class="shortcut"><span class="kbd">R</span> Reset</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">📈 Statistics & Comparison</div>
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-label">Status</div><div class="stat-value accent" id="statusText">Idle</div></div>
+          <div class="stat"><div class="stat-label">Step</div><div class="stat-value" id="stepCounter">0 / 0</div></div>
+          <div class="stat"><div class="stat-label">Operations</div><div class="stat-value" id="cellsCount">0</div></div>
+          <div class="stat"><div class="stat-label">Total subsets</div><div class="stat-value" id="bruteCount">0</div></div>
+        </div>
+        <div class="cmp-grid">
+          <div class="cmp-card optimal"><div class="cmp-label">DP (Optimal)</div><div class="cmp-val" id="dpResult">—</div></div>
+          <div class="cmp-card current"><div class="cmp-label" id="modeLabel">Current Mode</div><div class="cmp-val" id="modeResult">—</div></div>
+          <div class="cmp-card baseline"><div class="cmp-label">Brute‑force 2ⁿ</div><div class="cmp-val" id="bfResult">—</div></div>
+        </div>
+        <div id="approxNote" style="font-size:11px; color:var(--accent3); margin-top:8px; padding:10px; background:rgba(246,173,85,0.1); border-radius:10px;"></div>
+      </div>
+    </aside>
+
+    <main class="right-col">
+      <!-- Progress Bar + Info Band -->
+      <div class="panel" style="padding:16px 20px;">
+        <div class="progress-strip">
+          <div class="progress-row"><span>📊 Algorithm Progress</span><span id="progressLabel">0%</span></div>
+          <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+        </div>
+        <div class="info-band">
+          <div class="info-cell"><div class="l">Row i</div><div class="v" id="infoRow">—</div></div>
+          <div class="info-cell"><div class="l">Element aᵢ</div><div class="v" id="infoElement">—</div></div>
+          <div class="info-cell"><div class="l">Sum s</div><div class="v" id="infoSum">—</div></div>
+          <div class="info-cell"><div class="l">Reachable</div><div class="v" id="infoReachable">—</div></div>
+          <div class="info-cell"><div class="l">Operations</div><div class="v" id="infoWrites">—</div></div>
+          <div class="info-cell"><div class="l">Target status</div><div class="v" id="infoTargetStatus">—</div></div>
+        </div>
+      </div>
+
+      <!-- Best Subset Found -->
+      <div class="best-subset-box">
+        <div class="best-subset-label">✅ Best subset found so far</div>
+        <div class="best-subset-value" id="bestSubset">—</div>
+      </div>
+
+      <!-- Two columns: Visualization + Pseudocode -->
+      <div class="two-columns">
+        <div class="panel" style="padding:0; overflow:hidden">
+          <div class="panel-title" style="padding:12px 16px 0 16px;">
+            <span id="vizTitle">DP Table: reachable sums</span>
+          </div>
+          <div class="legend" id="tableLegend" style="display: none;">
+            <div class="legend-item"><div class="legend-color" style="background: rgba(104,211,145,0.35); border: 1px solid rgba(104,211,145,0.5);"></div><span class="legend-text">✓ Reachable (true) — subset of first i elements sums to s</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1);"></div><span class="legend-text">✗ Not reachable (false)</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: rgba(246,173,85,0.55); border: 1px solid var(--accent3);"></div><span class="legend-text">🔆 Current cell being processed (highlight)</span></div>
+            <div class="legend-item"><div class="legend-color" style="background: rgba(99,179,237,0.3); border: 1px solid var(--accent);"></div><span class="legend-text">⭐ Base case: dp[0][0] = true</span></div>
+          </div>
+          <div id="vizContainer" style="max-height: 350px; overflow: auto; padding: 12px;"></div>
+        </div>
+        <div class="pseudo-wrap">
+          <div class="panel-title" style="margin-bottom:12px;">📝 Pseudocode · DP Recurrence</div>
+          <div id="pseudocodeBox"></div>
+        </div>
+      </div>
+
+      <!-- Current Step Explanation -->
+      <div class="explain-box" id="explanationText">Press <strong>Build Steps</strong> to generate algorithm trace.</div>
+
+      <!-- Collapsible: Approximation Analysis (CLO-3) -->
+      <div class="collapsible-box" id="approxBox">
+        <div class="collapsible-header" id="approxHeader">
+          <h4>📊 Approximation Analysis (CLO‑3)</h4>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="collapsible-content" id="approxContent">
+          <div class="approx-card-inner">
+            <p><strong>Definition:</strong> An algorithm has approximation ratio ρ(n) if for all inputs, |solution| ≤ ρ(n)·|OPT| (for maximization).</p>
+            <p><strong>Greedy for Subset Sum:</strong> Has <strong>NO constant approximation ratio</strong>. Counterexample: S={⌊t/2⌋+1, ⌊t/2⌋+1, 1,1,...,1} — greedy picks large numbers and fails. Greedy can be arbitrarily bad.</p>
+            <p><strong>DP:</strong> Solves decision problem optimally in O(n·t) — pseudo‑polynomial, not an approximation algorithm.</p>
+            <p><strong>First‑fit/Brute-force:</strong> No guarantee (brute-force is exact but exponential).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible: Formal NP-Completeness Proof (CLO-5) -->
+      <div class="collapsible-box" id="proofBox">
+        <div class="collapsible-header" id="proofHeader">
+          <h4>📐 Formal NP‑Completeness Proof (CLO‑5)</h4>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="collapsible-content" id="proofContent">
+          <div class="proof-box-inner">
+            <p><strong>1. NP Membership:</strong> Given certificate C ⊆ S, verify ∑C = t in O(|C|) ≤ O(n) time. ✓ Subset Sum ∈ NP.</p>
+            
+            <p><strong>2. Reduction: 3‑SAT ≤<sub>p</sub> Subset Sum</strong><br>
+            Given 3‑CNF φ with n variables x₁...xₙ and m clauses C₁...Cₘ, construct n+m digit numbers (base 10):<br>
+            • For each variable xᵢ: create vᵢ (xᵢ=true) and vᵢ' (xᵢ=false). Digit i = 1. For each clause Cⱼ containing xᵢ, digit n+j += 1 in vᵢ. For each clause containing ¬xᵢ, digit n+j += 1 in vᵢ'.<br>
+            • For each clause Cⱼ: add sⱼ (1 in digit n+j) and sⱼ' (1 in digit n+j) — "slack" numbers.<br>
+            Target t: digit i = 1 for i=1..n, digit n+j = 3 for j=1..m.</p>
+            
+            <p><strong>3. Correctness (⇒):</strong> If φ satisfiable, choose vᵢ for TRUE, vᵢ' for FALSE. Each clause satisfied → at least one TRUE literal → clause digit sum ≥1. Add slacks to reach exactly 3. Total sum matches t.</p>
+            
+            <p><strong>4. Correctness (⇐):</strong> If subset sums to t, each variable digit sum =1 → exactly one of vᵢ,vᵢ' chosen. Clause digits sum to 3 → at least one TRUE literal → all clauses satisfied.</p>
+            
+            <p><strong>5. Polynomiality:</strong> Reduction constructs 2n+2m numbers, each with n+m digits. Construction time O((n+m)²).</p>
+            
+            <p><strong>6. Conclusion:</strong> Since 3‑SAT is NP‑complete and 3‑SAT ≤<sub>p</sub> Subset Sum, <em>Subset Sum is NP‑complete</em>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Growth Chart -->
+      <div class="panel">
+        <div class="panel-title">📊 Growth Analysis: 2ⁿ vs n·t (Pseudo‑polynomial)</div>
+        <div id="growthChart" style="min-height:180px; background:var(--surface2); border-radius:12px; padding:14px;"></div>
+        <p style="font-size:11px; color:var(--muted); margin-top:10px;">DP runs in O(n·t) — polynomial in t's <strong>value</strong>, not bits. If t ≈ 2ⁿ, DP becomes exponential. This does <strong>not</strong> contradict NP‑completeness.</p>
+      </div>
+
+      <!-- Step History -->
+      <div class="panel">
+        <div class="panel-title">📜 Step History (click to jump)</div>
+        <div id="historyList" style="max-height: 280px; overflow-y: auto;"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  // ---------- DOM Elements ----------
+  const $ = id => document.getElementById(id);
+  const escape = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  const PSEUDOCODE = [
+    "SUBSET-SUM-DP(S, t)",
+    "n = |S|",
+    "dp[0][0] = true",
+    "for i = 1 to n",
+    "    for s = 0 to t",
+    "        dp[i][s] = dp[i-1][s]",
+    "        if s ≥ aᵢ and dp[i-1][s-aᵢ]",
+    "            dp[i][s] = true",
+    "return dp[n][t]"
+  ];
+
+  // ---------- App State ----------
+  let app = {
+    numbers: [3, 34, 4, 12, 5, 2],
+    target: 9,
+    mode: "dp",
+    steps: [],
+    curStep: -1,
+    status: "idle",
+    timer: null,
+    speed: 1
+  };
+
+  // Collapsible functionality
+  function setupCollapsible(headerId, contentId) {
+    const header = $(headerId);
+    const content = $(contentId);
+    if (!header || !content) return;
+    
+    header.addEventListener("click", () => {
+      const isOpen = content.classList.contains("open");
+      if (isOpen) {
+        content.classList.remove("open");
+        header.classList.remove("open");
+      } else {
+        content.classList.add("open");
+        header.classList.add("open");
+      }
+    });
+    // Start open by default
+    content.classList.add("open");
+    header.classList.add("open");
+  }
+
+  // Helper: extract subset from a step (works for all modes)
+  function extractSubsetFromStep(step, numbers, target) {
+    if (step.subset && step.subset !== "—") return step.subset;
+    if (step.reachable && step.s === target && step.phase === "found") {
+      if (step.val && step.s === target) {
+        return `{ ${step.val} } = ${target}`;
+      }
+    }
+    return "—";
+  }
+
+  // 1. DP (Exhaustive, Optimal)
+  function generateDPTrace(numbers, target) {
+    const n = numbers.length;
+    let dp = Array(n + 1).fill().map(() => Array(target + 1).fill(false));
+    dp[0][0] = true;
+    let steps = [];
+    let ops = 1;
+    steps.push({ phase: "init", i: 0, val: null, s: null, explanation: "Base: dp[0][0] = true (empty subset sums to 0).", dp: JSON.parse(JSON.stringify(dp)), reachable: false, ops: ops, subset: "—", subsetSum: null });
+    
+    for (let i = 1; i <= n; i++) {
+      const val = numbers[i - 1];
+      for (let s = 0; s <= target; s++) {
+        const exclude = dp[i - 1][s];
+        const include = (s >= val && dp[i - 1][s - val]);
+        if (include) {
+          dp[i][s] = true;
+          ops++;
+          let subset = "—";
+          if (s === target && dp[i][target]) {
+            subset = reconstructSubset(dp, i, target, numbers);
+          }
+          steps.push({ phase: "include", i, val, s, explanation: `✅ INCLUDE ${val}: sum ${s} reachable (from dp[${i-1}][${s-val}]=true).`, dp: JSON.parse(JSON.stringify(dp)), reachable: dp[i][target], ops: ops, subset: subset, subsetSum: s });
+        } else if (exclude) {
+          dp[i][s] = true;
+          let subset = "—";
+          if (s === target && dp[i][target]) {
+            subset = reconstructSubset(dp, i, target, numbers);
+          }
+          steps.push({ phase: "exclude", i, val, s, explanation: `⏭️ EXCLUDE ${val}: sum ${s} carried over.`, dp: JSON.parse(JSON.stringify(dp)), reachable: dp[i][target], ops: ops, subset: subset, subsetSum: s });
+        }
+      }
+    }
+    let finalSubset = reconstructSubset(dp, n, target, numbers);
+    steps.push({ phase: "done", i: n, val: null, s: null, explanation: `🎯 DP complete. Target ${target} ${dp[n][target] ? "✅ REACHABLE" : "❌ NOT reachable"}.`, dp: JSON.parse(JSON.stringify(dp)), reachable: dp[n][target], ops: ops, subset: finalSubset, subsetSum: dp[n][target] ? target : null });
+    return steps;
+  }
+
+  function reconstructSubset(dp, i, target, numbers) {
+    if (!dp || !dp[i] || !dp[i][target]) return "—";
+    let s = target;
+    let subset = [];
+    for (let r = i; r > 0; r--) {
+      if (s >= numbers[r-1] && dp[r-1][s - numbers[r-1]]) {
+        subset.unshift(numbers[r-1]);
+        s -= numbers[r-1];
+      }
+    }
+    return subset.length ? `{ ${subset.join(", ")} } = ${target}` : "{ }";
+  }
+
+  // 2. Greedy
+  function generateGreedyTrace(numbers, target) {
+    let steps = [];
+    let currentSum = 0;
+    let chosen = [];
+    steps.push({ phase: "init", i: 0, val: null, s: null, explanation: "Greedy: sort descending, take if sum+val ≤ target.", dp: null, reachable: false, ops: 0, subset: "—", subsetSum: null });
+    let sorted = [...numbers].sort((a, b) => b - a);
+    for (let idx = 0; idx < sorted.length; idx++) {
+      const val = sorted[idx];
+      if (currentSum + val <= target) {
+        currentSum += val;
+        chosen.push(val);
+        let subsetStr = `{ ${chosen.join(", ")} } = ${currentSum}`;
+        steps.push({ phase: "take", i: idx + 1, val, s: currentSum, explanation: `✅ Greedy TAKES ${val} → sum = ${currentSum}.`, dp: null, reachable: currentSum === target, ops: idx + 1, subset: subsetStr, subsetSum: currentSum });
+      } else {
+        let subsetStr = `{ ${chosen.join(", ")} } = ${currentSum}`;
+        steps.push({ phase: "skip", i: idx + 1, val, s: currentSum, explanation: `⏭️ Greedy SKIPS ${val} (would exceed target).`, dp: null, reachable: currentSum === target, ops: idx + 1, subset: subsetStr, subsetSum: currentSum });
+      }
+    }
+    let finalSubset = `{ ${chosen.join(", ")} } = ${currentSum}`;
+    steps.push({ phase: "done", i: sorted.length, val: null, s: null, explanation: `🏁 Greedy finished. Final sum = ${currentSum}. ${currentSum === target ? "✅ Found!" : "❌ Not optimal — greedy has no approximation guarantee."}`, dp: null, reachable: currentSum === target, ops: sorted.length, subset: finalSubset, subsetSum: currentSum });
+    return steps;
+  }
+
+  // 3. First-fit
+  function generateFirstFitTrace(numbers, target) {
+    let steps = [];
+    let n = numbers.length;
+    let found = false;
+    steps.push({ phase: "init", i: 0, val: null, s: null, explanation: "First-fit: check subsets in lexicographic order until match.", dp: null, reachable: false, ops: 0, subset: "—", subsetSum: null });
+    for (let mask = 1; mask < (1 << n) && !found; mask++) {
+      let sum = 0;
+      let subset = [];
+      for (let i = 0; i < n; i++) {
+        if (mask & (1 << i)) {
+          sum += numbers[i];
+          subset.push(numbers[i]);
+        }
+      }
+      let subsetStr = `{ ${subset.join(", ")} } = ${sum}`;
+      if (sum === target && !found) {
+        found = true;
+        steps.push({ phase: "found", i: mask, val: null, s: sum, explanation: `🎉 First-fit found subset summing to ${target}!`, dp: null, reachable: true, ops: mask, subset: subsetStr, subsetSum: sum });
+        break;
+      } else {
+        steps.push({ phase: "check", i: mask, val: null, s: sum, explanation: `🔍 Check subset {${subset.join(", ")}} → sum = ${sum}.`, dp: null, reachable: false, ops: mask, subset: subsetStr, subsetSum: sum });
+      }
+    }
+    if (!found) {
+      steps.push({ phase: "done", i: n, val: null, s: null, explanation: `❌ First-fit exhausted all subsets. No subset sums to ${target}.`, dp: null, reachable: false, ops: (1 << n) - 1, subset: "—", subsetSum: null });
+    }
+    return steps;
+  }
+
+  // 4. Brute-force (full trace)
+  function generateBruteForceTrace(numbers, target) {
+    let steps = [];
+    let n = numbers.length;
+    let found = false;
+    steps.push({ phase: "init", i: 0, val: null, s: null, explanation: "Brute-force: enumerate all 2ⁿ subsets (exponential).", dp: null, reachable: false, ops: 0, subset: "—", subsetSum: null });
+    for (let mask = 0; mask < (1 << n); mask++) {
+      let sum = 0;
+      let subset = [];
+      for (let i = 0; i < n; i++) {
+        if (mask & (1 << i)) {
+          sum += numbers[i];
+          subset.push(numbers[i]);
+        }
+      }
+      let subsetStr = subset.length ? `{ ${subset.join(", ")} } = ${sum}` : "{ } = 0";
+      if (sum === target && !found) {
+        found = true;
+        steps.push({ phase: "found", i: mask, val: null, s: sum, explanation: `🎉 Brute-force found subset! {${subset.join(", ")}} = ${target}`, dp: null, reachable: true, ops: mask + 1, subset: subsetStr, subsetSum: sum });
+        break;
+      } else {
+        steps.push({ phase: "check", i: mask, val: null, s: sum, explanation: `🔍 Subset ${mask+1}/${Math.pow(2,n)}: {${subset.join(", ")}} → sum = ${sum}.`, dp: null, reachable: false, ops: mask + 1, subset: subsetStr, subsetSum: sum });
+      }
+    }
+    if (!found) {
+      steps.push({ phase: "done", i: n, val: null, s: null, explanation: `❌ Brute-force checked all ${Math.pow(2,n)} subsets. No subset sums to ${target}.`, dp: null, reachable: false, ops: Math.pow(2, n), subset: "—", subsetSum: null });
+    }
+    return steps;
+  }
+
+  function bruteForceExists(numbers, target) {
+    let total = 1 << numbers.length;
+    for (let mask = 0; mask < total; mask++) {
+      let sum = 0;
+      for (let i = 0; i < numbers.length; i++) if (mask & (1 << i)) sum += numbers[i];
+      if (sum === target) return true;
+    }
+    return false;
+  }
+
+  // UI Rendering
+  function renderPseudocode(activeLine) {
+    let box = $("pseudocodeBox");
+    if (!box) return;
+    let html = "";
+    PSEUDOCODE.forEach((line, idx) => {
+      let activeClass = (idx === activeLine) ? "active" : "";
+      html += `<div class="code-line ${activeClass}"><span class="ln">${idx + 1}</span><span>${escape(line)}</span></div>`;
+    });
+    box.innerHTML = html;
+  }
+
+  function renderVisualization(step) {
+    let container = $("vizContainer");
+    let title = $("vizTitle");
+    let legend = $("tableLegend");
+    
+    if (!step) {
+      container.innerHTML = "<div style='padding:30px; text-align:center; color:var(--muted);'>🔨 Press 'Build Steps' to start</div>";
+      if (legend) legend.style.display = "none";
+      return;
+    }
+    
+    // For DP mode: show the DP table with legend
+    if (step.dp) {
+      title.innerHTML = "DP Table: reachable sums (✓ = reachable)";
+      if (legend) legend.style.display = "flex";
+      let n = app.numbers.length, tgt = app.target;
+      let html = `<table class="dp-grid-table"><thead><tr><th>i\\s</th>`;
+      for (let s = 0; s <= tgt; s++) html += `<th>${s}</th>`;
+      html += `</thead><tbody>`;
+      for (let i = 0; i <= n; i++) {
+        html += `<tr><th style="background:rgba(255,255,255,0.05)">${i}</th>`;
+        for (let s = 0; s <= tgt; s++) {
+          let val = step.dp[i][s];
+          let cls = val ? "true" : "false";
+          if (step.i === i && step.s === s) cls += " highlight";
+          if (i === 0 && s === 0) cls += " base-highlight";
+          html += `<td class="${cls}">${val ? "✓" : "✗"}</td>`;
+        }
+        html += `</tr>`;
+      }
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+      return;
+    }
+    
+    // For non-DP modes: hide legend, show trace list
+    if (legend) legend.style.display = "none";
+    title.innerHTML = "📋 Algorithm Trace";
+    let html = `<div class="trace-list">`;
+    let startIdx = Math.max(0, app.curStep - 10);
+    for (let i = startIdx; i <= app.curStep && i < app.steps.length; i++) {
+      let st = app.steps[i];
+      let highlight = (i === app.curStep) ? "highlight" : "";
+      let icon = st.phase === "take" ? "✅" : (st.phase === "skip" ? "⏭️" : (st.phase === "found" ? "🎉" : "🔍"));
+      html += `<div class="trace-item ${highlight}">
+        <strong>${i+1}.</strong> ${icon} ${st.explanation.substring(0, 80)}${st.explanation.length > 80 ? "…" : ""}
+      </div>`;
+    }
+    html += `</div>`;
+    if (app.steps.length === 0) html = "<div style='padding:30px; text-align:center; color:var(--muted);'>Build steps to see trace</div>";
+    container.innerHTML = html;
+  }
+
+  function renderHistory() {
+    let container = $("historyList");
+    if (!app.steps.length) {
+      container.innerHTML = "<div style='padding:16px; color:var(--muted);'>No steps yet. Click 'Build Steps'.</div>";
+      return;
+    }
+    let html = "";
+    for (let i = 0; i < app.steps.length; i++) {
+      let st = app.steps[i];
+      let activeClass = (i === app.curStep) ? "active" : "";
+      let icon = st.phase === "take" ? "✅" : (st.phase === "skip" ? "⏭️" : (st.phase === "found" ? "🎉" : (st.phase === "include" ? "✅" : (st.phase === "exclude" ? "⏭️" : "🔍"))));
+      html += `<div class="history-item ${activeClass}" onclick="window.goToStep(${i})">
+        <strong>${i + 1}</strong> · ${icon} <span style="color:var(--accent);">${st.phase}</span> 
+        ${st.val ? `· val=${st.val}` : ""} ${st.s !== undefined && st.s !== null ? `· sum=${st.s}` : ""}<br>
+        <span style="color:var(--muted); font-size:11px;">${escape(st.explanation.substring(0, 85))}${st.explanation.length > 85 ? "…" : ""}</span>
+      </div>`;
+    }
+    container.innerHTML = html;
+  }
+
+  function renderGrowthChart() {
+    let n = Math.min(app.numbers.length, 10);
+    let t = Math.max(app.target, 1);
+    let bruteVals = [], dpVals = [];
+    for (let i = 1; i <= n; i++) {
+      bruteVals.push(Math.pow(2, i));
+      dpVals.push(i * t);
+    }
+    let maxBrute = Math.max(...bruteVals, 1);
+    let maxDp = Math.max(...dpVals, 1);
+    let html = `<div style="display:flex; gap:24px; font-size:12px; margin-bottom:14px;">
+      <div><span style="color:var(--accent3)">● 2ⁿ (brute)</span> max=${maxBrute.toLocaleString()}</div>
+      <div><span style="color:var(--accent4)">● n·t (DP)</span> max=${maxDp.toLocaleString()}</div>
+    </div><div>`;
+    for (let i = 1; i <= n; i++) {
+      let brutePercent = (bruteVals[i-1] / maxBrute) * 100;
+      let dpPercent = (dpVals[i-1] / maxDp) * 100;
+      html += `<div style="margin:10px 0;"><strong style="font-size:12px;">n=${i}</strong>
+        <div style="background:rgba(255,255,255,0.1); height:24px; width:100%; border-radius:6px; overflow:hidden; margin-top:4px;">
+          <div style="background:var(--accent3); width:${brutePercent}%; height:100%; float:left;"></div>
+          <div style="background:var(--accent4); width:${dpPercent}%; height:100%; float:left;"></div>
+        </div></div>`;
+    }
+    html += `</div>`;
+    $("growthChart").innerHTML = html;
+  }
+
+  function updateUI() {
+    if (!app.steps.length || app.curStep < 0) {
+      $("vizContainer").innerHTML = "<div style='padding:40px; text-align:center; color:var(--muted);'>🔨 Press 'Build Steps' to start</div>";
+      $("stepCounter").innerHTML = "0 / 0";
+      $("statusText").innerHTML = "Idle";
+      $("modeResult").innerHTML = "—";
+      $("bestSubset").innerHTML = "—";
+      $("progressFill").style.width = "0%";
+      $("progressLabel").innerHTML = "0%";
+      $("infoRow").innerHTML = "—";
+      $("infoElement").innerHTML = "—";
+      $("infoSum").innerHTML = "—";
+      $("infoReachable").innerHTML = "—";
+      $("infoWrites").innerHTML = "—";
+      $("infoTargetStatus").innerHTML = "—";
+      renderPseudocode(-1);
+      return;
+    }
+    let st = app.steps[app.curStep];
+    renderVisualization(st);
+    $("explanationText").innerHTML = st.explanation;
+    
+    // Update best subset - find the latest step with a valid subset
+    let bestSubset = "—";
+    for (let i = app.curStep; i >= 0; i--) {
+      if (app.steps[i].subset && app.steps[i].subset !== "—") {
+        bestSubset = app.steps[i].subset;
+        break;
+      }
+    }
+    $("bestSubset").innerHTML = bestSubset;
+    
+    $("stepCounter").innerHTML = `${app.curStep + 1} / ${app.steps.length}`;
+    $("statusText").innerHTML = app.status === "playing" ? "Playing" : (app.status === "paused" ? "Paused" : "Ready");
+    
+    let pct = ((app.curStep + 1) / app.steps.length) * 100;
+    $("progressFill").style.width = pct + "%";
+    $("progressLabel").innerHTML = Math.round(pct) + "%";
+    
+    $("infoRow").innerHTML = st.i !== undefined && st.i !== null ? st.i : "—";
+    $("infoElement").innerHTML = st.val !== undefined && st.val !== null ? st.val : "—";
+    $("infoSum").innerHTML = st.s !== undefined && st.s !== null ? st.s : "—";
+    $("infoReachable").innerHTML = st.reachable ? "✅ YES" : "❌ NO";
+    $("infoWrites").innerHTML = st.ops !== undefined ? st.ops : "—";
+    $("infoTargetStatus").innerHTML = st.reachable ? "🎯 Target reached" : "⏳ Not yet";
+    
+    let activeLine = -1;
+    if (st.phase === "include" || st.phase === "exclude") activeLine = 7;
+    else if (st.phase === "init") activeLine = 2;
+    else if (st.phase === "done") activeLine = 8;
+    renderPseudocode(activeLine);
+    
+    let optimalExists = bruteForceExists(app.numbers, app.target);
+    $("dpResult").innerHTML = optimalExists ? "✅ YES" : "❌ NO";
+    $("bfResult").innerHTML = optimalExists ? "✅ YES" : "❌ NO";
+    $("modeResult").innerHTML = st.reachable ? "✅ Found" : "❌ Not found";
+    
+    let opsCount = st.ops !== undefined ? st.ops : (app.mode === "dp" ? (app.numbers.length + 1) * (app.target + 1) : Math.pow(2, app.numbers.length));
+    $("cellsCount").innerHTML = opsCount.toLocaleString();
+    $("bruteCount").innerHTML = Math.pow(2, app.numbers.length).toLocaleString();
+    
+    let modeName = app.mode === "dp" ? "DP (Optimal)" : (app.mode === "greedy" ? "Greedy" : (app.mode === "firstfit" ? "First-fit" : "Brute-force 2ⁿ"));
+    $("modeLabel").innerHTML = modeName;
+    
+    if (app.mode === "greedy") {
+      $("approxNote").innerHTML = "⚠️ Greedy has NO constant approximation ratio. ∀ε>0, ∃ input where greedy sum ≤ ε·OPT. Counterexample: S={6,5,5}, t=10 → greedy picks 6 (fails), optimal 5+5.";
+    } else if (app.mode === "firstfit") {
+      $("approxNote").innerHTML = "📦 First-fit checks subsets lexicographically. Not optimal, no guarantee. May find solution but not guaranteed.";
+    } else if (app.mode === "bruteforce") {
+      $("approxNote").innerHTML = "🔴 Brute-force enumerates all 2ⁿ subsets. Exponential — not practical for n>30. Shows why DP is better for moderate t.";
+    } else {
+      $("approxNote").innerHTML = "✅ DP is optimal: explores both include/exclude via recurrence. Pseudo‑polynomial O(n·t).";
+    }
+    
+    renderHistory();
+    renderGrowthChart();
+  }
+
+  // Control Functions
+  function buildSteps() {
+    let raw = $("setInput").value.split(",").map(v => parseInt(v.trim(), 10)).filter(v => !isNaN(v));
+    if (raw.length === 0) { alert("Invalid numbers"); return; }
+    let tgt = parseInt($("targetInput").value, 10);
+    if (isNaN(tgt)) { alert("Invalid target"); return; }
+    
+    app.numbers = raw;
+    app.target = tgt;
+    app.mode = $("algoMode").value;
+    
+    if (app.mode === "dp") app.steps = generateDPTrace(app.numbers, app.target);
+    else if (app.mode === "greedy") app.steps = generateGreedyTrace(app.numbers, app.target);
+    else if (app.mode === "firstfit") app.steps = generateFirstFitTrace(app.numbers, app.target);
+    else app.steps = generateBruteForceTrace(app.numbers, app.target);
+    
+    app.curStep = 0;
+    app.status = "ready";
+    if (app.timer) { clearTimeout(app.timer); app.timer = null; }
+    updateUI();
+    
+    $("stepBtn").disabled = false;
+    $("playBtn").disabled = false;
+    $("pauseBtn").disabled = false;
+  }
+
+  function nextStep() {
+    if (!app.steps.length) return;
+    if (app.curStep < app.steps.length - 1) {
+      app.curStep++;
+      updateUI();
+      if (app.curStep === app.steps.length - 1 && app.status === "playing") {
+        clearTimeout(app.timer);
+        app.status = "paused";
+        updateUI();
+      }
+    }
+  }
+
+  function play() {
+    if (!app.steps.length) return;
+    if (app.curStep >= app.steps.length - 1) {
+      app.curStep = -1;
+      nextStep();
+    }
+    if (app.status !== "playing") {
+      app.status = "playing";
+      updateUI();
+      function loop() {
+        if (app.status !== "playing") return;
+        if (app.curStep < app.steps.length - 1) {
+          nextStep();
+          app.timer = setTimeout(loop, Math.max(150, 600 / app.speed));
+        } else {
+          app.status = "paused";
+          updateUI();
+        }
+      }
+      if (app.timer) clearTimeout(app.timer);
+      app.timer = setTimeout(loop, Math.max(150, 600 / app.speed));
+    }
+  }
+
+  function pause() {
+    if (app.timer) { clearTimeout(app.timer); app.timer = null; }
+    app.status = "paused";
+    updateUI();
+  }
+
+  function reset() {
+    pause();
+    app.steps = [];
+    app.curStep = -1;
+    app.status = "idle";
+    updateUI();
+    $("vizContainer").innerHTML = "<div style='padding:40px; text-align:center; color:var(--muted);'>🔨 Press 'Build Steps' to start</div>";
+    $("stepBtn").disabled = true;
+    $("playBtn").disabled = true;
+    $("pauseBtn").disabled = true;
+    $("modeResult").innerHTML = "—";
+    $("bestSubset").innerHTML = "—";
+  }
+
+  function showCounterexample() {
+    $("setInput").value = "6,5,5";
+    $("targetInput").value = "10";
+    $("algoMode").value = "greedy";
+    buildSteps();
+  }
+
+  window.goToStep = function(idx) {
+    if (idx >= 0 && idx < app.steps.length) {
+      if (app.status === "playing") pause();
+      app.curStep = idx;
+      updateUI();
+    }
+  };
+
+  // Event Bindings
+  $("buildBtn").addEventListener("click", buildSteps);
+  $("stepBtn").addEventListener("click", () => { if (app.status === "playing") pause(); nextStep(); });
+  $("playBtn").addEventListener("click", play);
+  $("pauseBtn").addEventListener("click", pause);
+  $("resetBtn").addEventListener("click", reset);
+  $("speedSlider").addEventListener("input", () => { 
+    app.speed = parseFloat($("speedSlider").value); 
+    $("speedValue").innerHTML = app.speed.toFixed(2) + "×"; 
+    if (app.status === "playing") { pause(); play(); } 
+  });
+  $("counterexampleBtn").addEventListener("click", showCounterexample);
+  $("exportBtn").addEventListener("click", () => {
+    let lastStep = app.steps[app.steps.length-1];
+    let report = `Subset Sum Report\nSet: ${app.numbers.join(", ")}\nTarget: ${app.target}\nMode: ${app.mode}\nResult: ${lastStep?.reachable ? "Found" : "Not found"}\nOperations: ${lastStep?.ops || 0}\nTotal subsets: ${Math.pow(2, app.numbers.length)}\nBest subset: ${lastStep?.subset || "—"}`;
+    let a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([report], {type: "text/plain"}));
+    a.download = "subset-sum-report.txt";
+    a.click();
+  });
+  document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => { 
+    $("setInput").value = c.dataset.preset; 
+    buildSteps(); 
+  }));
+  document.addEventListener("keydown", e => {
+    if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+    if (e.code === "Space") { e.preventDefault(); app.status === "playing" ? pause() : play(); }
+    if (e.key === "ArrowRight") { e.preventDefault(); if (app.status === "playing") pause(); nextStep(); }
+    if (e.key.toLowerCase() === "r") reset();
+  });
+
+  // Initialize collapsible boxes
+  setupCollapsible("approxHeader", "approxContent");
+  setupCollapsible("proofHeader", "proofContent");
+
+  reset();
+</script>
+</body>
+</html>
